@@ -514,14 +514,19 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	@Override
 	public void refresh() throws BeansException, IllegalStateException {
 		synchronized (this.startupShutdownMonitor) {
-			// Prepare this context for refreshing. （为更新准备上下文，设定一些标志）
+			// Prepare this context for refreshing.
+			// 刷新预处理，和主流程关系不大，就是保存了容器的启动时间，为更新准备上下文，设置启动标志等
 			prepareRefresh();
 
 			// Tell the subclass to refresh the internal bean factory. （告诉子类去更新它们的 bean factory）
 			// 类的注册到 bean factory 也是在这一步
+			// 和主流程关系也不大，最终获得了DefaultListableBeanFactory
 			ConfigurableListableBeanFactory beanFactory = obtainFreshBeanFactory();
 
 			// Prepare the bean factory for use in this context.
+			//还是一些准备工作，添加了两个后置处理器：ApplicationContextAwareProcessor，ApplicationListenerDetector
+			//还设置了 忽略自动装配 和 允许自动装配 的接口,如果不存在某个bean的时候，spring就自动注册singleton bean
+			//还设置了bean表达式解析器 等
 			prepareBeanFactory(beanFactory);
 
 			try {
@@ -655,8 +660,11 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 */
 	protected void prepareBeanFactory(ConfigurableListableBeanFactory beanFactory) {
 		// Tell the internal bean factory to use the context's class loader etc.
+		// 设置类加载器
 		beanFactory.setBeanClassLoader(getClassLoader());
+		// 设置bean表达式解析器
 		beanFactory.setBeanExpressionResolver(new StandardBeanExpressionResolver(beanFactory.getBeanClassLoader()));
+		// 属性编辑器支持
 		beanFactory.addPropertyEditorRegistrar(new ResourceEditorRegistrar(this, getEnvironment()));
 
 		// Configure the bean factory with context callbacks.
@@ -894,11 +902,12 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		beanFactory.freezeConfiguration();
 
 		// Instantiate all remaining (non-lazy-init) singletons.
+		// 初始化所有的非懒加载单例
 		beanFactory.preInstantiateSingletons();
 	}
 
 	/**
-	 * Finish the refresh of this context, invoking the LifecycleProcessor's
+	 * Finish the refresh of this context, invoking the LifecycleProcessoLazyInitTargetSourceCreator.javar's
 	 * onRefresh() method and publishing the
 	 * {@link org.springframework.context.event.ContextRefreshedEvent}.
 	 */
